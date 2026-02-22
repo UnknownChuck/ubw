@@ -3,297 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balalla U.B.Wanninayake National School - Teacher Reports</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+    <title>Balalla U.B.Wanninayake - SQL Cloud System</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+Sinhala:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #1e3a8a; --secondary: #f59e0b; --bg-color: #f3f4f6;
-            --text-main: #334155; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --leave: #8b5cf6;
+            --primary: #1e3a8a;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --ai-accent: #8b5cf6;
+            --bg: #f8fafc;
+            --text-dark: #1e293b;
+            --border: #e2e8f0;
+            --admin-bg: #0f172a;
         }
 
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        
         body {
-            font-family: 'Poppins', 'Noto Sans Sinhala', 'Noto Sans Tamil', sans-serif;
-            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
-            color: var(--text-main); margin: 0; padding: 20px; min-height: 100vh;
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .lang-switcher { display: flex; justify-content: flex-end; gap: 8px; max-width: 700px; margin: 0 auto 10px; }
-        .lang-btn { background: white; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .lang-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .navbar {
+            width: 100%;
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
 
-        .container { max-width: 700px; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background: var(--primary); color: white; padding: 30px 20px; text-align: center; border-bottom: 5px solid var(--secondary); }
-        .school-logo { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; margin-bottom: 10px; }
-        .content { padding: 30px; }
+        .lang-switch { display: flex; gap: 5px; }
+        .btn-lang {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .btn-lang.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .instruction { text-align: center; font-size: 13px; margin-bottom: 25px; background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid var(--secondary); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--primary); font-size: 14px; }
+        .container {
+            width: 95%;
+            max-width: 800px;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
 
-        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #f8fafc; font-family: inherit; }
+        /* Admin Styles */
+        #admin-login, #admin-panel { display: none; padding: 2rem; }
+        .admin-card { background: #f1f5f9; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--border); }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
+        .data-table th, .data-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+        .data-table th { background: var(--primary); color: white; }
+
+        .hero-header {
+            background: var(--primary);
+            color: white;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-ring {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--primary-light);
+        }
+
+        .logo-ring img { width: 65px; height: 65px; border-radius: 50%; }
+
+        .mode-banner {
+            background: #fffbeb;
+            color: #92400e;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            text-align: center;
+            border-bottom: 1px solid #fde68a;
+            font-weight: 500;
+        }
+
+        .main-content { padding: 2rem; }
+
+        /* AI SECTION */
+        .ai-toolbox {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            border: 1px solid #ddd6fe;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-title { display: flex; align-items: center; gap: 8px; color: #5b21b6; font-weight: 700; margin-bottom: 1rem; }
+        .ai-input-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ai-input-group input { flex: 1; padding: 0.75rem; border: 1px solid #c4b5fd; border-radius: 0.5rem; outline: none; min-width: 200px; }
         
-        .status-box { background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 20px; }
-        .period-block { background: #fff; border: 1px solid #e2e8f0; padding: 18px; margin-bottom: 15px; border-radius: 12px; }
-        .period-title { font-weight: 600; margin-bottom: 12px; color: var(--primary); font-size: 14px; }
-        .period-title span { background: var(--primary); color: white; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-right: 8px; }
+        .btn-ai {
+            background: var(--ai-accent);
+            color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;
+        }
 
-        .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
-        .radio-group div { flex: 1; min-width: 45%; }
-        .radio-group input { display: none; }
-        .radio-group label { display: block; background: #f1f5f9; padding: 10px 5px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; border: 1px solid transparent; }
+        /* FORM STYLES */
+        .form-section { display: flex; flex-direction: column; gap: 1.25rem; }
+        .field-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .field-group label { font-weight: 600; font-size: 0.9rem; color: var(--primary); }
+        .row-group { display: flex; gap: 1rem; }
+        .row-group .field-group { flex: 1; }
         
-        .radio-group input:checked + label { color: white; font-weight: 600; border-color: rgba(0,0,0,0.1); }
-        .radio-group input[value="Yes"]:checked + label { background: var(--success); }
-        .radio-group input[value="No"]:checked + label { background: var(--danger); }
-        .radio-group input[value="Relief (not my period)"]:checked + label { background: var(--warning); }
-        .radio-group input[value="Short Leave"]:checked + label { background: var(--leave); }
+        input[type="text"], input[type="password"], select {
+            padding: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            width: 100%;
+        }
 
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; font-family: inherit; }
-        #admin-panel, #login-panel { display: none; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        .periods-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+        .period-row {
+            padding: 12px; border: 1px solid var(--border); border-radius: 8px; display: flex;
+            justify-content: space-between; align-items: center; background: #fcfcfc; flex-wrap: wrap; gap: 10px;
+        }
+
+        .period-label { font-size: 0.9rem; font-weight: 600; color: #334155; }
+        
+        /* NEW BUTTON STYLES FOR PERIODS */
+        .btn-group { display: flex; gap: 5px; }
+        .btn-option {
+            padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 6px; 
+            cursor: pointer; font-size: 0.85rem; font-weight: 600; color: #64748b;
+        }
+        .btn-option:hover { background: #f1f5f9; }
+        /* Active States */
+        .btn-option.active-yes { background: #10b981; color: white; border-color: #10b981; }
+        .btn-option.active-no { background: #ef4444; color: white; border-color: #ef4444; }
+        .btn-option.active-relief { background: #f59e0b; color: white; border-color: #f59e0b; }
+
+        .btn-submit {
+            background: var(--primary); color: white; border: none; padding: 1.1rem;
+            border-radius: 0.75rem; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; width: 100%;
+        }
+        .btn-submit:hover { background: #172554; transform: translateY(-1px); }
+
+        .btn-danger { background: #ef4444 !important; }
+
+        /* MODAL */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content {
+            background: white; width: 95%; max-width: 600px; border-radius: 1.25rem; padding: 2rem;
+            position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .hidden { display: none; }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--ai-accent);
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .btn-admin-switch {
+            background: none; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px;
+            border-radius: 5px; cursor: pointer; font-size: 0.75rem; margin-right: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div class="lang-switcher">
-    <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">English</button>
-    <button class="lang-btn" id="btn-si" onclick="setLanguage('si')">සිංහල</button>
-    <button class="lang-btn" id="btn-ta" onclick="setLanguage('ta')">தமிழ்</button>
-</div>
+<nav class="navbar">
+    <div style="display: flex; align-items: center;">
+        <button class="btn-admin-switch" onclick="showAdminLogin()">Admin Portal</button>
+        <div style="font-weight: 700; color: var(--primary);">B.U.B.W SQL Cloud</div>
+    </div>
+    <div class="lang-switch">
+        <button class="btn-lang active" id="ln-en" onclick="setLang('en')">English</button>
+        <button class="btn-lang" id="ln-si" onclick="setLang('si')">සිංහල</button>
+    </div>
+</nav>
 
 <div class="container">
-    <div class="header">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIUI2eZLGWi4ulTPa4tY348pN_uGQSJp1Sbw&s" alt="Logo" class="school-logo">
-        <h1 id="schoolName">Balalla U.B.Wanninayake</h1>
-        <h2 id="schoolType">National School</h2>
+    <div id="demo-banner" class="mode-banner">
+        ⚠️ <b>System Status:</b> Waiting for input. Automatic Timestamp Active.
     </div>
 
-    <div class="content">
-        <div id="teacher-panel">
-            <div class="instruction" id="instructText">🕒 Please fill out this report at 1:30 P.M. before leaving.</div>
-            
-            <form id="teacherForm">
-                <div class="form-group">
-                    <label id="lblDay">Day of the Week</label>
-                    <select id="dayOfWeek" required></select>
-                </div>
-                
-                <div class="form-group">
-                    <label id="lblName">Teacher's Full Name</label>
-                    <input type="text" id="teacherName" placeholder="..." required>
-                </div>
+    <div id="admin-login">
+        <h3>Admin Secure Login</h3>
+        <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+        <button class="btn-submit" onclick="loginAdmin()">Login</button>
+        <button class="btn-ai" style="background: grey; margin-top: 10px; width:100%;" onclick="closeAdmin()">Back to Teacher Form</button>
+    </div>
 
-                <div class="status-box">
-                    <label id="lblStatus">Your Attendance Status Today</label>
-                    <select id="attendanceStatus" onchange="handleStatusChange()" required>
-                        </select>
-                </div>
-
-                <div id="periods-section">
-                    <div id="periods-container"></div>
-                </div>
-
-                <button type="submit" class="btn-primary" id="btnSubmit">Submit Daily Report</button>
-            </form>
-            <button class="btn-primary" style="background:transparent; color:var(--primary); font-size:12px;" onclick="showPanel('login-panel')" id="btnAdminLink">Admin Login</button>
+    <div id="admin-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Admin Dashboard</h2>
+            <button onclick="logoutAdmin()" class="btn-lang">Logout</button>
         </div>
-
-        <div id="login-panel">
-            <h2 id="adminTitle">Admin Portal</h2>
-            <input type="text" id="username" placeholder="Username" style="margin-bottom:10px;">
-            <input type="password" id="password" placeholder="Password">
-            <button class="btn-primary" onclick="loginAdmin()">Login</button>
-            <button onclick="showPanel('teacher-panel')" style="background:none; border:none; color:var(--primary); cursor:pointer; width:100%; margin-top:10px;">← Back</button>
-        </div>
-
-        <div id="admin-panel">
-            <h2 id="dashTitle">Admin Dashboard</h2>
-            <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #e2e8f0;">
-                <label>Upload Timetable (CSV)</label>
-                <input type="file" id="csvFileInput" accept=".csv">
+        
+        <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
+                <h4>📊 AI Data Analytics</h4>
+                <button class="btn-ai btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
             </div>
-            <table id="reportsTable">
-                <thead><tr><th id="thDate">Date</th><th id="thTeacher">Teacher</th><th>Action</th></tr></thead>
-                <tbody></tbody>
-            </table>
-            <button class="btn-primary" onclick="showPanel('teacher-panel')" style="background:var(--danger)">Logout</button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-ai" onclick="analyzeData('summary')">Generate All Summaries</button>
+                <button class="btn-ai" style="background: var(--primary);" onclick="analyzeData('daily')">Daily Report</button>
+            </div>
         </div>
+
+        <div class="admin-card">
+            <h4>📝 Submitted Responses</h4>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Time</th><th>Teacher</th><th>Class</th><th>Status</th><th>Periods Info</th></tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="teacher-ui">
+        <div class="hero-header">
+            <div class="logo-ring">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIUI2eZLGWi4ulTPa4tY348pN_uGQSJp1Sbw&s" alt="School Logo">
+            </div>
+            <h1 id="txt-title" style="margin:0; font-size: 1.4rem;">Balalla U.B.Wanninayake National School</h1>
+            <p id="txt-subtitle" style="margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem;">Digital Timetable & Reporting System</p>
+        </div>
+
+        <div class="main-content">
+            <div class="ai-toolbox">
+                <div class="ai-title">✨ <span id="txt-ai-title">Teacher's AI Assistant</span></div>
+                <div class="ai-input-group">
+                    <input type="text" id="ai-topic" placeholder="Topic: e.g. Fractions, Photosynthesis...">
+                    <button class="btn-ai" onclick="askGemini()">Ask AI</button>
+                </div>
+            </div>
+
+            <form id="reportForm" class="form-section">
+                <div class="field-group">
+                    <label id="lbl-name">Teacher Name</label>
+                    <input type="text" id="teacher-name" required placeholder="Ex: Mr. Kamal Perera">
+                </div>
+
+                <div class="row-group">
+                    <div class="field-group">
+                        <label id="lbl-grade">Grade Level</label>
+                        <select id="class-grade">
+                            <option value="Grade 6">Grade 6</option>
+                            <option value="Grade 7">Grade 7</option>
+                            <option value="Grade 8">Grade 8</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label id="lbl-subclass">Sub-Class</label>
+                        <select id="class-section">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label id="lbl-status">Attendance Status</label>
+                    <select id="attendance-status">
+                        <option value="present">Present (On Duty)</option>
+                        <option value="late">Late Reporting</option>
+                        <option value="absent">Absent / On Leave</option>
+                    </select>
+                </div>
+
+                <div id="period-wrap">
+                    <label id="lbl-periods" style="font-weight:600; font-size: 0.9rem; color: var(--primary);">Period Teaching Status</label>
+                    <div class="periods-grid" id="periods-container">
+                        </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">Submit to SQL Cloud</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-title" style="margin-top:0;">AI Insights & Reports</h3>
+        <div id="modal-loading" class="hidden">
+            <div class="loading-spinner"></div>
+            <p style="text-align:center;">Gemini AI Processing...</p>
+        </div>
+        <div id="modal-body" style="line-height: 1.6; max-height: 400px; overflow-y: auto; font-size: 0.95rem; color: #334155; margin-bottom: 20px;"></div>
+        <button class="btn-submit" style="margin:0;" onclick="closeModal()">Close</button>
     </div>
 </div>
 
 <script>
+    // FIXED: Using actual project endpoint instead of dashboard URL
+    const SUPABASE_URL = "https://fzrlwukrhzayadlzppdq.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_Ajp5RBBN8TeBYeqLhUOG4Q_WilTKS0O"; 
+    const GEMINI_API_KEY = "AIzaSyDbAPbqHeGFKHLs5r9R1o8w-7ZqIu5EDX4"; // Note: Make sure this full key is correct.
+
+    let supabaseClient = null;
+    let currentLang = 'en';
+    let localDB = JSON.parse(localStorage.getItem('school_reports') || '[]');
+
     const translations = {
         en: {
-            schoolName: "Balalla U.B.Wanninayake", schoolType: "National School",
-            instruct: "🕒 Please fill out this report at 1:30 P.M. before leaving.",
-            lblDay: "Day of the Week", lblName: "Teacher's Full Name", lblStatus: "Attendance Status Today",
-            btnSubmit: "Submit Daily Report", pTitle: "Period Status", adminLink: "Admin Login", dashTitle: "Admin Dashboard",
-            optYes: "Yes, I Taught", optNo: "No", optRelief: "Relief Duty", optShortL: "I was on Short Leave",
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            status: { present: "Present (In School)", shortLeave: "Short Leave", notInSchool: "Not in School Today", vacation: "On Vacation" }
+            title: "Balalla U.B.Wanninayake National School",
+            subtitle: "Digital Timetable & Reporting System",
+            aiTitle: "Teacher's AI Assistant",
+            lblName: "Teacher Name",
+            lblGrade: "Grade Level",
+            lblSubclass: "Sub-Class",
+            lblStatus: "Attendance Status",
+            lblPeriods: "Period Teaching Status",
+            btnSubmit: "Submit to SQL Cloud",
+            demo: "⚠️ System Status: Waiting for input. Automatic Timestamp Active.",
+            success: "Report successfully sent!"
         },
         si: {
-            schoolName: "බලල්ල යූ.බී. වන්නිනායක", schoolType: "ජාතික පාසල",
-            instruct: "🕒 කරුණාකර පාසලෙන් පිටවීමට පෙර ප.ව. 1.30 ට මෙම වාර්තාව සම්පූර්ණ කරන්න.",
-            lblDay: "සතියේ දිනය", lblName: "ගුරුතුමාගේ/තුමියගේ සම්පූර්ණ නම", lblStatus: "අද දින ඔබගේ පැමිණීම",
-            btnSubmit: "වාර්තාව ඉදිරිපත් කරන්න", pTitle: "කාලපරිච්ඡේදය", adminLink: "පරිපාලක පිවිසුම", dashTitle: "පරිපාලන පුවරුව",
-            optYes: "ඔව්, ඉගැන්වූවා", optNo: "නැත", optRelief: "සහන සේවය", optShortL: "මම කෙටි නිවාඩු ලබා සිටියෙමි",
-            days: ["සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා"],
-            status: { present: "පාසල් පැමිණ සිටී", shortLeave: "කෙටි නිවාඩු", notInSchool: "අද දින පැමිණ නැත", vacation: "නිවාඩු ලබා ඇත" }
-        },
-        ta: {
-            schoolName: "பாலல்ல யு.பி. வன்னிநாயக்க", schoolType: "தேசிய பாடசாலை",
-            instruct: "🕒 தயவுசெய்து பள்ளி முடிந்து பி.ப. 1.30 மணிக்கு இந்த அறிக்கையை சமர்ப்பிக்கவும்.",
-            lblDay: "வாரத்தின் நாள்", lblName: "ஆசிரியரின் முழுப் பெயர்", lblStatus: "இன்றைய வருகை நிலை",
-            btnSubmit: "அறிக்கையைச் சமர்ப்பிக்கவும்", pTitle: "பாடவேளை", adminLink: "நிர்வாகி உள்நுழைவு", dashTitle: "நிர்வாக அறை",
-            optYes: "ஆம், கற்பித்தேன்", optNo: "இல்லை", optRelief: "நிவாரண கடமை", optShortL: "நான் குறுப்பு விடுப்பில் இருந்தேன்",
-            days: ["திங்கட்கிழமை", "செவ்வாய்க்கிழமை", "புதன்கிழமை", "வியாழக்கிழமை", "வெள்ளிக்கிழமை"],
-            status: { present: "பள்ளிக்கு வந்துள்ளார்", shortLeave: "குறுப்பு விடுப்பு", notInSchool: "இன்று வரவில்லை", vacation: "விடுமுறை" }
+            title: "බලල්ල යූ.බී. වන්නිනායක ජාතික පාසල",
+            subtitle: "ඩිජිටල් කාලසටහන සහ වාර්තාකරණ පද්ධතිය",
+            aiTitle: "ගුරු සහායක AI",
+            lblName: "ගුරුතුමාගේ/තුමියගේ නම",
+            lblGrade: "ශ්‍රේණිය",
+            lblSubclass: "පන්තිය",
+            lblStatus: "පැමිණීමේ තත්ත්වය",
+            lblPeriods: "කාලච්ඡේද ඉගැන්වීමේ තත්ත්වය",
+            btnSubmit: "SQL වලාකුළට යොමු කරන්න",
+            demo: "⚠️ පද්ධතිය: දත්ත ඇතුළත් කරන තෙක් රැඳී සිටී. ස්වයංක්‍රීය වේලාව සක්‍රීයයි.",
+            success: "වාර්තාව සාර්ථකව යොමු කරන ලදී!"
         }
     };
 
-    let currentLang = 'en';
-
-    function setLanguage(lang) {
-        currentLang = lang;
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`btn-${lang}`).classList.add('active');
-
-        const t = translations[lang];
-        document.getElementById('schoolName').innerText = t.schoolName;
-        document.getElementById('schoolType').innerText = t.schoolType;
-        document.getElementById('instructText').innerText = t.instruct;
-        document.getElementById('lblDay').innerText = t.lblDay;
-        document.getElementById('lblName').innerText = t.lblName;
-        document.getElementById('lblStatus').innerText = t.lblStatus;
-        document.getElementById('btnSubmit').innerText = t.btnSubmit;
-        document.getElementById('btnAdminLink').innerText = t.adminLink;
-        document.getElementById('dashTitle').innerText = t.dashTitle;
-
-        const daySel = document.getElementById('dayOfWeek');
-        daySel.innerHTML = `<option value="">Select Day...</option>`;
-        translations.en.days.forEach((d, i) => daySel.innerHTML += `<option value="${d}">${t.days[i]}</option>`);
-
-        const statSel = document.getElementById('attendanceStatus');
-        statSel.innerHTML = `
-            <option value="Present">${t.status.present}</option>
-            <option value="Short Leave">${t.status.shortLeave}</option>
-            <option value="Not in School">${t.status.notInSchool}</option>
-            <option value="Vacation">${t.status.vacation}</option>`;
-        
-        renderPeriods();
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
 
-    function handleStatusChange() {
-        const status = document.getElementById('attendanceStatus').value;
-        const section = document.getElementById('periods-section');
-        section.style.display = (status === 'Not in School' || status === 'Vacation') ? 'none' : 'block';
-        renderPeriods();
+    // --- ADMIN LOGIC ---
+    function showAdminLogin() {
+        document.getElementById('teacher-ui').style.display = 'none';
+        document.getElementById('admin-login').style.display = 'block';
     }
 
-    function renderPeriods() {
-        const container = document.getElementById('periods-container');
-        const t = translations[currentLang];
-        const status = document.getElementById('attendanceStatus').value;
-        container.innerHTML = '';
-
-        for (let i = 1; i <= 8; i++) {
-            let reliefOpt = `<div><input type="radio" id="p${i}r" name="p${i}" value="Relief (not my period)" required><label for="p${i}r">${t.optRelief}</label></div>`;
-            let shortLeaveOpt = (status === 'Short Leave') ? `<div><input type="radio" id="p${i}sl" name="p${i}" value="Short Leave" required><label for="p${i}sl">${t.optShortL}</label></div>` : '';
-
-            container.innerHTML += `
-                <div class="period-block">
-                    <div class="period-title"><span>${i}</span> Period ${i} - ${t.pTitle}</div>
-                    <div class="radio-group">
-                        <div><input type="radio" id="p${i}y" name="p${i}" value="Yes" required><label for="p${i}y">${t.optYes}</label></div>
-                        <div><input type="radio" id="p${i}n" name="p${i}" value="No" required><label for="p${i}n">${t.optNo}</label></div>
-                        ${reliefOpt} ${shortLeaveOpt}
-                    </div>
-                </div>`;
-        }
-    }
-
-    document.getElementById('teacherForm').onsubmit = function(e) {
-        e.preventDefault();
-        const status = document.getElementById('attendanceStatus').value;
-        let answers = [];
-        if (status === 'Present' || status === 'Short Leave') {
-            for(let i=1; i<=8; i++) answers.push(document.querySelector(`input[name="p${i}"]:checked`).value);
-        } else {
-            answers = Array(8).fill(status);
-        }
-        
-        let report = {
-            id: Date.now(), day: document.getElementById('dayOfWeek').value,
-            name: document.getElementById('teacherName').value, status: status,
-            answers: answers, time: new Date().toLocaleString()
-        };
-
-        let reports = JSON.parse(localStorage.getItem('reports') || '[]');
-        reports.push(report); localStorage.setItem('reports', JSON.stringify(reports));
-        alert("Report Submitted Successfully!"); this.reset(); handleStatusChange();
-    };
-
-    function showPanel(id) {
-        document.getElementById('teacher-panel').style.display = 'none';
-        document.getElementById('login-panel').style.display = 'none';
+    function closeAdmin() {
+        document.getElementById('teacher-ui').style.display = 'block';
+        document.getElementById('admin-login').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'none';
-        document.getElementById(id).style.display = 'block';
-        if(id === 'admin-panel') loadReports();
     }
 
     function loginAdmin() {
-        if(document.getElementById('username').value === 'admin' && document.getElementById('password').value === 'UbW1@3') showPanel('admin-panel');
-        else alert("Access Denied");
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === "admin123") {
+            document.getElementById('admin-login').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('admin-pass').value = '';
+            loadAdminData();
+        } else {
+            alert("Wrong Password");
+        }
     }
 
-    document.getElementById('csvFileInput').onchange = function(e) {
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            const lines = ev.target.result.split('\n').slice(1);
-            const data = lines.map(line => {
-                const cols = line.split(',');
-                return { day: cols[0]?.trim(), name: cols[1]?.trim(), p: cols.slice(2).map(c => c.trim()) };
+    function logoutAdmin() {
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('teacher-ui').style.display = 'block';
+    }
+
+    function loadAdminData() {
+        const tbody = document.getElementById('admin-table-body');
+        tbody.innerHTML = '';
+        localDB.forEach(row => {
+            const classInfo = row.class_grade ? `${row.class_grade} - ${row.class_section}` : 'N/A';
+            tbody.innerHTML += `<tr>
+                <td>${row.created_at}</td>
+                <td>${row.teacher_name}</td>
+                <td>${classInfo}</td>
+                <td>${row.status}</td>
+                <td>${row.periods}</td>
+            </tr>`;
+        });
+    }
+
+    // NEW: Clear Data Function
+    async function clearAllData() {
+        if(confirm("⚠️ ARE YOU SURE? This will permanently delete all teacher reports!")) {
+            // 1. Clear local browser storage
+            localDB = [];
+            localStorage.setItem('school_reports', JSON.stringify(localDB));
+            
+            // 2. Clear Supabase Database (Deletes all rows where teacher_name is not null)
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('school_reports')
+                        .delete()
+                        .not('teacher_name', 'is', null); 
+                        
+                    if(error) console.error("Supabase Delete Error:", error);
+                } catch(e) {
+                    console.error("Failed to delete from Cloud:", e);
+                }
+            }
+
+            loadAdminData();
+            alert("All data has been wiped successfully.");
+        }
+    }
+
+    // --- PERIOD BUTTON GENERATION ---
+    function generatePeriods() {
+        const container = document.getElementById('periods-container');
+        container.innerHTML = '';
+        const options = currentLang === 'en' ? 
+            ['Yes', 'No', 'Relief'] : 
+            ['ඔව්', 'නැත', 'පැවරුම්'];
+
+        for (let i = 1; i <= 8; i++) {
+            container.innerHTML += `
+                <div class="period-row">
+                    <span class="period-label">Period ${i} ?</span>
+                    <div class="btn-group">
+                        <button type="button" class="btn-option active-yes" id="btn-yes-${i}" onclick="setPeriod(${i}, 'Yes')">${options[0]}</button>
+                        <button type="button" class="btn-option" id="btn-no-${i}" onclick="setPeriod(${i}, 'No')">${options[1]}</button>
+                        <button type="button" class="btn-option" id="btn-relief-${i}" onclick="setPeriod(${i}, 'Relief')">${options[2]}</button>
+                    </div>
+                    <input type="hidden" id="p${i}" value="Yes">
+                </div>
+            `;
+        }
+    }
+
+    // NEW: Handles button clicks for periods
+    function setPeriod(periodId, value) {
+        // Update hidden input
+        document.getElementById(`p${periodId}`).value = value;
+        
+        // Reset all buttons for this period
+        document.getElementById(`btn-yes-${periodId}`).className = "btn-option";
+        document.getElementById(`btn-no-${periodId}`).className = "btn-option";
+        document.getElementById(`btn-relief-${periodId}`).className = "btn-option";
+
+        // Add active class to clicked button
+        if(value === 'Yes') document.getElementById(`btn-yes-${periodId}`).classList.add("active-yes");
+        if(value === 'No') document.getElementById(`btn-no-${periodId}`).classList.add("active-no");
+        if(value === 'Relief') document.getElementById(`btn-relief-${periodId}`).classList.add("active-relief");
+    }
+
+    // --- GEMINI AI INTEGRATION ---
+    async function askGemini(promptOverride = null) {
+        const topic = document.getElementById('ai-topic').value;
+        if (!topic && !promptOverride) return alert("Please enter a topic.");
+
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+        const loader = document.getElementById('modal-loading');
+
+        modal.style.display = 'flex';
+        modalBody.innerText = '';
+        loader.classList.remove('hidden');
+
+        const prompt = promptOverride || `I am a teacher at Balalla U.B.Wanninayake National School. Give me 3 creative, high-engagement lesson hooks for Grade 8 about "${topic}". Also provide the current date and time in a formal format.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
             });
-            localStorage.setItem('timetable', JSON.stringify(data)); alert("Timetable CSV Uploaded!");
+            const data = await response.json();
+            loader.classList.add('hidden');
+            modalBody.innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+        } catch (e) {
+            loader.classList.add('hidden');
+            modalBody.innerText = "Error connecting to AI. Please check API key.";
+        }
+    }
+
+    async function analyzeData(type) {
+        let context = JSON.stringify(localDB);
+        let prompt = "";
+
+        if(type === 'summary') {
+            prompt = `Analyze these school teacher reports and create a summary report for each teacher mentioned. Highlight their teaching workload vs free periods: ${context}`;
+        } else {
+            prompt = `Based on these records, create a "Daily School Summary Report" for today. Count total periods taught, total reliefs, and attendance percentages: ${context}`;
+        }
+        askGemini(prompt);
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+        document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+        document.getElementById(`ln-${lang}`).classList.add('active');
+        document.getElementById('txt-title').innerText = t.title;
+        document.getElementById('lbl-name').innerText = t.lblName;
+        document.getElementById('lbl-grade').innerText = t.lblGrade;
+        document.getElementById('lbl-subclass').innerText = t.lblSubclass;
+        document.getElementById('lbl-status').innerText = t.lblStatus;
+        document.getElementById('lbl-periods').innerText = t.lblPeriods;
+        document.getElementById('btn-submit').innerText = t.btnSubmit;
+        generatePeriods();
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+    // --- FORM SUBMISSION ---
+    document.getElementById('reportForm').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        let periodData = [];
+        for(let i=1; i<=8; i++) {
+            periodData.push(`P${i}: ${document.getElementById('p'+i).value}`);
+        }
+
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+
+        const formData = {
+            teacher_name: document.getElementById('teacher-name').value,
+            class_grade: document.getElementById('class-grade').value,
+            class_section: document.getElementById('class-section').value,
+            status: document.getElementById('attendance-status').value,
+            periods: periodData.join(' | '),
+            created_at: timestamp
         };
-        reader.readAsText(e.target.files[0]);
+
+        // Save locally
+        localDB.push(formData);
+        localStorage.setItem('school_reports', JSON.stringify(localDB));
+
+        // Save to Supabase
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('school_reports').insert([formData]);
+            } catch(error) {
+                console.error("Supabase Insert Error:", error);
+            }
+        }
+
+        alert(translations[currentLang].success + " at " + timestamp);
+        
+        // Reset form and UI
+        e.target.reset();
+        generatePeriods(); 
     };
 
-    function loadReports() {
-        const tbody = document.querySelector('#reportsTable tbody'); tbody.innerHTML = '';
-        JSON.parse(localStorage.getItem('reports') || '[]').reverse().forEach(r => {
-            tbody.innerHTML += `<tr><td>${r.day}<br><small>${r.time}</small></td><td><b>${r.name}</b><br><small>${r.status}</small></td><td><button onclick="genPDF(${r.id})">PDF</button></td></tr>`;
-        });
-    }
-
-    function genPDF(id) {
-        const r = JSON.parse(localStorage.getItem('reports')).find(x => x.id === id);
-        const tt = JSON.parse(localStorage.getItem('timetable') || '[]');
-        const sched = tt.find(x => x.name?.toLowerCase() === r.name.toLowerCase() && x.day === r.day);
-        
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(18); doc.setTextColor(30, 58, 138); doc.text("Balalla U.B.Wanninayake National School", 105, 20, null, null, "center");
-        doc.setFontSize(11); doc.setTextColor(100); doc.text(`Teacher: ${r.name} | Date: ${r.time} | Status: ${r.status}`, 20, 30);
-        
-        doc.setDrawColor(200); doc.line(20, 35, 190, 35);
-        let y = 45;
-        r.answers.forEach((ans, i) => {
-            let sub = (sched && sched.p[i]) ? sched.p[i] : "Subject Not Found";
-            doc.setTextColor(50); doc.text(`Period ${i+1}:`, 20, y);
-            doc.text(`(${sub})`, 45, y);
-            doc.setTextColor(ans === 'Yes' ? [16,185,129] : (ans === 'Short Leave' ? [139,92,246] : [239,68,68]));
-            doc.text(`Result: ${ans}`, 130, y);
-            y += 10;
-        });
-        doc.save(`${r.name}_DailyReport.pdf`);
-    }
-
-    setLanguage('en');
+    window.onload = () => {
+        generatePeriods();
+        setLang('en');
+    };
 </script>
 </body>
-
 </html>
