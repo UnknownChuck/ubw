@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balalla U.B.Wanninayake National School - Teacher Reports</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1e3a8a; --secondary: #f59e0b; --bg-color: #f3f4f6;
+            --text-main: #334155; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --leave: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Poppins', 'Noto Sans Sinhala', 'Noto Sans Tamil', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            color: var(--text-main); margin: 0; padding: 20px; min-height: 100vh;
+        }
+
+        .lang-switcher { display: flex; justify-content: flex-end; gap: 8px; max-width: 700px; margin: 0 auto 10px; }
+        .lang-btn { background: white; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .lang-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .container { max-width: 700px; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
+        .header { background: var(--primary); color: white; padding: 30px 20px; text-align: center; border-bottom: 5px solid var(--secondary); }
+        .school-logo { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; margin-bottom: 10px; }
+        .content { padding: 30px; }
+
+        .instruction { text-align: center; font-size: 13px; margin-bottom: 25px; background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid var(--secondary); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--primary); font-size: 14px; }
+
+        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #f8fafc; font-family: inherit; }
+        
+        .status-box { background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 20px; }
+        .period-block { background: #fff; border: 1px solid #e2e8f0; padding: 18px; margin-bottom: 15px; border-radius: 12px; }
+        .period-title { font-weight: 600; margin-bottom: 12px; color: var(--primary); font-size: 14px; }
+        .period-title span { background: var(--primary); color: white; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-right: 8px; }
+
+        .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .radio-group div { flex: 1; min-width: 45%; }
+        .radio-group input { display: none; }
+        .radio-group label { display: block; background: #f1f5f9; padding: 10px 5px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; border: 1px solid transparent; }
+        
+        .radio-group input:checked + label { color: white; font-weight: 600; border-color: rgba(0,0,0,0.1); }
+        .radio-group input[value="Yes"]:checked + label { background: var(--success); }
+        .radio-group input[value="No"]:checked + label { background: var(--danger); }
+        .radio-group input[value="Relief (not my period)"]:checked + label { background: var(--warning); }
+        .radio-group input[value="Short Leave"]:checked + label { background: var(--leave); }
+
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; font-family: inherit; }
+        #admin-panel, #login-panel { display: none; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="lang-switcher">
+    <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">English</button>
+    <button class="lang-btn" id="btn-si" onclick="setLanguage('si')">සිංහල</button>
+    <button class="lang-btn" id="btn-ta" onclick="setLanguage('ta')">தமிழ்</button>
+</div>
+
+<div class="container">
+    <div class="header">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIUI2eZLGWi4ulTPa4tY348pN_uGQSJp1Sbw&s" alt="Logo" class="school-logo">
+        <h1 id="schoolName">Balalla U.B.Wanninayake</h1>
+        <h2 id="schoolType">National School</h2>
+    </div>
+
+    <div class="content">
+        <div id="teacher-panel">
+            <div class="instruction" id="instructText">🕒 Please fill out this report at 1:30 P.M. before leaving.</div>
+            
+            <form id="teacherForm">
+                <div class="form-group">
+                    <label id="lblDay">Day of the Week</label>
+                    <select id="dayOfWeek" required></select>
+                </div>
+                
+                <div class="form-group">
+                    <label id="lblName">Teacher's Full Name</label>
+                    <input type="text" id="teacherName" placeholder="..." required>
+                </div>
+
+                <div class="status-box">
+                    <label id="lblStatus">Your Attendance Status Today</label>
+                    <select id="attendanceStatus" onchange="handleStatusChange()" required>
+                        </select>
+                </div>
+
+                <div id="periods-section">
+                    <div id="periods-container"></div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnSubmit">Submit Daily Report</button>
+            </form>
+            <button class="btn-primary" style="background:transparent; color:var(--primary); font-size:12px;" onclick="showPanel('login-panel')" id="btnAdminLink">Admin Login</button>
+        </div>
+
+        <div id="login-panel">
+            <h2 id="adminTitle">Admin Portal</h2>
+            <input type="text" id="username" placeholder="Username" style="margin-bottom:10px;">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-primary" onclick="loginAdmin()">Login</button>
+            <button onclick="showPanel('teacher-panel')" style="background:none; border:none; color:var(--primary); cursor:pointer; width:100%; margin-top:10px;">← Back</button>
+        </div>
+
+        <div id="admin-panel">
+            <h2 id="dashTitle">Admin Dashboard</h2>
+            <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #e2e8f0;">
+                <label>Upload Timetable (CSV)</label>
+                <input type="file" id="csvFileInput" accept=".csv">
+            </div>
+            <table id="reportsTable">
+                <thead><tr><th id="thDate">Date</th><th id="thTeacher">Teacher</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <button class="btn-primary" onclick="showPanel('teacher-panel')" style="background:var(--danger)">Logout</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const translations = {
+        en: {
+            schoolName: "Balalla U.B.Wanninayake", schoolType: "National School",
+            instruct: "🕒 Please fill out this report at 1:30 P.M. before leaving.",
+            lblDay: "Day of the Week", lblName: "Teacher's Full Name", lblStatus: "Attendance Status Today",
+            btnSubmit: "Submit Daily Report", pTitle: "Period Status", adminLink: "Admin Login", dashTitle: "Admin Dashboard",
+            optYes: "Yes, I Taught", optNo: "No", optRelief: "Relief Duty", optShortL: "I was on Short Leave",
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            status: { present: "Present (In School)", shortLeave: "Short Leave", notInSchool: "Not in School Today", vacation: "On Vacation" }
+        },
+        si: {
+            schoolName: "බලල්ල යූ.බී. වන්නිනායක", schoolType: "ජාතික පාසල",
+            instruct: "🕒 කරුණාකර පාසලෙන් පිටවීමට පෙර ප.ව. 1.30 ට මෙම වාර්තාව සම්පූර්ණ කරන්න.",
+            lblDay: "සතියේ දිනය", lblName: "ගුරුතුමාගේ/තුමියගේ සම්පූර්ණ නම", lblStatus: "අද දින ඔබගේ පැමිණීම",
+            btnSubmit: "වාර්තාව ඉදිරිපත් කරන්න", pTitle: "කාලපරිච්ඡේදය", adminLink: "පරිපාලක පිවිසුම", dashTitle: "පරිපාලන පුවරුව",
+            optYes: "ඔව්, ඉගැන්වූවා", optNo: "නැත", optRelief: "සහන සේවය", optShortL: "මම කෙටි නිවාඩු ලබා සිටියෙමි",
+            days: ["සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා"],
+            status: { present: "පාසල් පැමිණ සිටී", shortLeave: "කෙටි නිවාඩු", notInSchool: "අද දින පැමිණ නැත", vacation: "නිවාඩු ලබා ඇත" }
+        },
+        ta: {
+            schoolName: "பாலல்ல யு.பி. வன்னிநாயக்க", schoolType: "தேசிய பாடசாலை",
+            instruct: "🕒 தயவுசெய்து பள்ளி முடிந்து பி.ப. 1.30 மணிக்கு இந்த அறிக்கையை சமர்ப்பிக்கவும்.",
+            lblDay: "வாரத்தின் நாள்", lblName: "ஆசிரியரின் முழுப் பெயர்", lblStatus: "இன்றைய வருகை நிலை",
+            btnSubmit: "அறிக்கையைச் சமர்ப்பிக்கவும்", pTitle: "பாடவேளை", adminLink: "நிர்வாகி உள்நுழைவு", dashTitle: "நிர்வாக அறை",
+            optYes: "ஆம், கற்பித்தேன்", optNo: "இல்லை", optRelief: "நிவாரண கடமை", optShortL: "நான் குறுப்பு விடுப்பில் இருந்தேன்",
+            days: ["திங்கட்கிழமை", "செவ்வாய்க்கிழமை", "புதன்கிழமை", "வியாழக்கிழமை", "வெள்ளிக்கிழமை"],
+            status: { present: "பள்ளிக்கு வந்துள்ளார்", shortLeave: "குறுப்பு விடுப்பு", notInSchool: "இன்று வரவில்லை", vacation: "விடுமுறை" }
+        }
+    };
+
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${lang}`).classList.add('active');
+
+        const t = translations[lang];
+        document.getElementById('schoolName').innerText = t.schoolName;
+        document.getElementById('schoolType').innerText = t.schoolType;
+        document.getElementById('instructText').innerText = t.instruct;
+        document.getElementById('lblDay').innerText = t.lblDay;
+        document.getElementById('lblName').innerText = t.lblName;
+        document.getElementById('lblStatus').innerText = t.lblStatus;
+        document.getElementById('btnSubmit').innerText = t.btnSubmit;
+        document.getElementById('btnAdminLink').innerText = t.adminLink;
+        document.getElementById('dashTitle').innerText = t.dashTitle;
+
+        const daySel = document.getElementById('dayOfWeek');
+        daySel.innerHTML = `<option value="">Select Day...</option>`;
+        translations.en.days.forEach((d, i) => daySel.innerHTML += `<option value="${d}">${t.days[i]}</option>`);
+
+        const statSel = document.getElementById('attendanceStatus');
+        statSel.innerHTML = `
+            <option value="Present">${t.status.present}</option>
+            <option value="Short Leave">${t.status.shortLeave}</option>
+            <option value="Not in School">${t.status.notInSchool}</option>
+            <option value="Vacation">${t.status.vacation}</option>`;
+        
+        renderPeriods();
+    }
+
+    function handleStatusChange() {
+        const status = document.getElementById('attendanceStatus').value;
+        const section = document.getElementById('periods-section');
+        section.style.display = (status === 'Not in School' || status === 'Vacation') ? 'none' : 'block';
+        renderPeriods();
+    }
+
+    function renderPeriods() {
+        const container = document.getElementById('periods-container');
+        const t = translations[currentLang];
+        const status = document.getElementById('attendanceStatus').value;
+        container.innerHTML = '';
+
+        for (let i = 1; i <= 8; i++) {
+            let reliefOpt = `<div><input type="radio" id="p${i}r" name="p${i}" value="Relief (not my period)" required><label for="p${i}r">${t.optRelief}</label></div>`;
+            let shortLeaveOpt = (status === 'Short Leave') ? `<div><input type="radio" id="p${i}sl" name="p${i}" value="Short Leave" required><label for="p${i}sl">${t.optShortL}</label></div>` : '';
+
+            container.innerHTML += `
+                <div class="period-block">
+                    <div class="period-title"><span>${i}</span> Period ${i} - ${t.pTitle}</div>
+                    <div class="radio-group">
+                        <div><input type="radio" id="p${i}y" name="p${i}" value="Yes" required><label for="p${i}y">${t.optYes}</label></div>
+                        <div><input type="radio" id="p${i}n" name="p${i}" value="No" required><label for="p${i}n">${t.optNo}</label></div>
+                        ${reliefOpt} ${shortLeaveOpt}
+                    </div>
+                </div>`;
+        }
+    }
+
+    document.getElementById('teacherForm').onsubmit = function(e) {
+        e.preventDefault();
+        const status = document.getElementById('attendanceStatus').value;
+        let answers = [];
+        if (status === 'Present' || status === 'Short Leave') {
+            for(let i=1; i<=8; i++) answers.push(document.querySelector(`input[name="p${i}"]:checked`).value);
+        } else {
+            answers = Array(8).fill(status);
+        }
+        
+        let report = {
+            id: Date.now(), day: document.getElementById('dayOfWeek').value,
+            name: document.getElementById('teacherName').value, status: status,
+            answers: answers, time: new Date().toLocaleString()
+        };
+
+        let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        reports.push(report); localStorage.setItem('reports', JSON.stringify(reports));
+        alert("Report Submitted Successfully!"); this.reset(); handleStatusChange();
+    };
+
+    function showPanel(id) {
+        document.getElementById('teacher-panel').style.display = 'none';
+        document.getElementById('login-panel').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+        if(id === 'admin-panel') loadReports();
+    }
+
+    function loginAdmin() {
+        if(document.getElementById('username').value === 'admin' && document.getElementById('password').value === 'admin123') showPanel('admin-panel');
+        else alert("Access Denied");
+    }
+
+    document.getElementById('csvFileInput').onchange = function(e) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const lines = ev.target.result.split('\n').slice(1);
+            const data = lines.map(line => {
+                const cols = line.split(',');
+                return { day: cols[0]?.trim(), name: cols[1]?.trim(), p: cols.slice(2).map(c => c.trim()) };
+            });
+            localStorage.setItem('timetable', JSON.stringify(data)); alert("Timetable CSV Uploaded!");
+        };
+        reader.readAsText(e.target.files[0]);
+    };
+
+    function loadReports() {
+        const tbody = document.querySelector('#reportsTable tbody'); tbody.innerHTML = '';
+        JSON.parse(localStorage.getItem('reports') || '[]').reverse().forEach(r => {
+            tbody.innerHTML += `<tr><td>${r.day}<br><small>${r.time}</small></td><td><b>${r.name}</b><br><small>${r.status}</small></td><td><button onclick="genPDF(${r.id})">PDF</button></td></tr>`;
+        });
+    }
+
+    function genPDF(id) {
+        const r = JSON.parse(localStorage.getItem('reports')).find(x => x.id === id);
+        const tt = JSON.parse(localStorage.getItem('timetable') || '[]');
+        const sched = tt.find(x => x.name?.toLowerCase() === r.name.toLowerCase() && x.day === r.day);
+        
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFontSize(18); doc.setTextColor(30, 58, 138); doc.text("Balalla U.B.Wanninayake National School", 105, 20, null, null, "center");
+        doc.setFontSize(11); doc.setTextColor(100); doc.text(`Teacher: ${r.name} | Date: ${r.time} | Status: ${r.status}`, 20, 30);
+        
+        doc.setDrawColor(200); doc.line(20, 35, 190, 35);
+        let y = 45;
+        r.answers.forEach((ans, i) => {
+            let sub = (sched && sched.p[i]) ? sched.p[i] : "Subject Not Found";
+            doc.setTextColor(50); doc.text(`Period ${i+1}:`, 20, y);
+            doc.text(`(${sub})`, 45, y);
+            doc.setTextColor(ans === 'Yes' ? [16,185,129] : (ans === 'Short Leave' ? [139,92,246] : [239,68,68]));
+            doc.text(`Result: ${ans}`, 130, y);
+            y += 10;
+        });
+        doc.save(`${r.name}_DailyReport.pdf`);
+    }
+
+    setLanguage('en');
+</script>
+</body>
+</html>
